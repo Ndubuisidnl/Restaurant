@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --espresso: #3B1A08;
+    --dark-wood: #1C0D03;
+    --warm-brown: #6B4226;
+    --warm-amber: #C8873F;
+    --light-caramel: #E8C99A;
+    --cream: #FDF6EE;
+    --warm-white: #FFFDFC;
+    --text-dark: #1A0A00;
+    --text-muted: #7A5C44;
+  }
+}
+
+@theme {
+  --color-espresso: #3B1A08;
+  --color-dark-wood: #1C0D03;
+  --color-warm-brown: #6B4226;
+  --color-warm-amber: #C8873F;
+  --color-warm-amber-hover: #D9974F;
+  --color-light-caramel: #E8C99A;
+  --color-cream: #FDF6EE;
+  --color-cream-card: #F9F1E6;
+  --color-warm-white: #FFFDFC;
+  --color-text-dark: #1A0A00;
+  --color-text-muted: #7A5C44;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: light dark;
+}
+
+body {
+  background-color: #FDF6EE;
+  color: #1A0A00;
+  font-family: var(--font-sans), sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FDF6EE;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C8873F;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6B4226;
+}
+
+/* Wood House Signature Utility Classes */
+.bg-espresso {
+  background-color: #3B1A08;
+}
+
+.bg-dark-wood {
+  background-color: #1C0D03;
+}
+
+.bg-cream {
+  background-color: #FDF6EE;
+}
+
+.bg-amber {
+  background-color: #C8873F;
+}
+
+.text-espresso {
+  color: #3B1A08;
+}
+
+.text-amber {
+  color: #C8873F;
+}
+
+.font-heading {
+  font-family: var(--font-serif), serif;
+}
+
+.font-body {
+  font-family: var(--font-sans), sans-serif;
+}
+
+.wood-card {
+  background-color: #FFFDFC;
+  border: 1px solid rgba(200, 135, 63, 0.2);
+  box-shadow: 0 4px 20px -2px rgba(59, 26, 8, 0.05);
+}
+
+.wood-card-hover {
+  transition: all 0.3s ease;
+}
+
+.wood-card-hover:hover {
+  border-color: rgba(200, 135, 63, 0.45);
+  box-shadow: 0 10px 25px -5px rgba(59, 26, 8, 0.12);
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  background-color: #3B1A08;
+  color: #FFFDFC;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #1C0D03;
+}
+
+.btn-amber {
+  background-color: #C8873F;
+  color: #FFFDFC;
+  transition: all 0.2s ease;
+}
+
+.btn-amber:hover {
+  background-color: #B27532;
+}
+
+/* Hide default scrollbars for category tabs */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
