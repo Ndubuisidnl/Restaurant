@@ -29,8 +29,7 @@ export const BUSINESS_INFO = {
   whatsapp: "+2348184479600", // Formatted for WhatsApp URL
   instagram: "@woodhouse_cafe",
   instagramUrl: "https://www.instagram.com/woodhouse_cafe",
-  // NOTE: email and TikTok not publicly confirmed — using placeholders
-  email: null, // Will be added when confirmed
+  email: "info.bookpod@gmail.com",
   tiktok: null, // Will be added when confirmed
   openingHours: {
     schedule: "Daily",
@@ -116,10 +115,12 @@ export const DEMO_ORDERS: DemoOrder[] = [
     items: [
       {
         menuItem: {
-          id: "cf-002",
+          id: "cf-009",
           name: "Cappuccino",
-          description: "Classic cappuccino",
-          price: 2200,
+          description: "Equal parts espresso, steamed milk, and velvety foam.",
+          price: 1200,
+          priceSecondary: 1500,
+          priceDisplay: "₦1,200 / ₦1,500",
           category: "coffee",
           imageLabel: "WOOD HOUSE CAFE CAPPUCCINO WITH LATTE ART",
           available: true,
@@ -129,11 +130,11 @@ export const DEMO_ORDERS: DemoOrder[] = [
       {
         menuItem: {
           id: "ds-001",
-          name: "Belgian Waffles",
-          description: "Crispy Belgian waffles",
-          price: 3500,
+          name: "Pancakes or Waffles with Ice Cream",
+          description: "Fluffy pancakes or crispy waffles served with a scoop of ice cream and chocolate sauce.",
+          price: 1500,
           category: "desserts",
-          imageLabel: "WOOD HOUSE CAFE BELGIAN WAFFLES WITH ICE CREAM",
+          imageLabel: "WOOD HOUSE CAFE PANCAKES OR WAFFLES WITH ICE CREAM",
           available: true,
         },
         quantity: 1,
@@ -146,9 +147,9 @@ export const DEMO_ORDERS: DemoOrder[] = [
     },
     orderType: "pickup",
     paymentMethod: "pay-at-restaurant",
-    subtotal: 7900,
+    subtotal: 3900,
     deliveryFee: 0,
-    total: 7900,
+    total: 3900,
     status: "collected",
     createdAt: new Date("2024-09-20T10:30:00"),
   },
@@ -159,11 +160,12 @@ export const DEMO_ORDERS: DemoOrder[] = [
       {
         menuItem: {
           id: "bg-001",
-          name: "Wood House Classic Burger",
-          description: "Juicy beef patty",
-          price: 5500,
+          name: "Beef Burger",
+          description: "Juicy beef patty with onions, green peppers, rocket, fresh tomatoes, cheddar cheese and house burger sauce.",
+          price: 2000,
           category: "burgers",
-          imageLabel: "WOOD HOUSE CAFE CLASSIC BEEF BURGER",
+          image: "/images/WOOD HOUSE CAFE BURGER.png",
+          imageLabel: "WOOD HOUSE CAFE BEEF BURGER",
           available: true,
         },
         quantity: 1,
@@ -171,24 +173,24 @@ export const DEMO_ORDERS: DemoOrder[] = [
       },
       {
         menuItem: {
-          id: "sn-001",
-          name: "Loaded Fries",
-          description: "Crispy fries with toppings",
-          price: 3000,
-          category: "snacks",
-          imageLabel: "WOOD HOUSE CAFE LOADED CHEESE FRIES",
+          id: "si-004",
+          name: "French Fries",
+          description: "Classic golden crispy French fries, lightly salted and served hot.",
+          price: 500,
+          category: "sides",
+          imageLabel: "WOOD HOUSE CAFE FRENCH FRIES",
           available: true,
         },
         quantity: 1,
       },
       {
         menuItem: {
-          id: "dr-004",
+          id: "mo-001",
           name: "Chapman",
-          description: "Classic Nigerian Chapman",
-          price: 2200,
+          description: "Classic Nigerian Chapman — Fanta, Sprite, grenadine, cucumber and citrus over ice.",
+          price: 1500,
           category: "drinks",
-          imageLabel: "WOOD HOUSE CAFE CHAPMAN COCKTAIL WITH FRUIT GARNISH",
+          imageLabel: "WOOD HOUSE CAFE CHAPMAN MOCKTAIL",
           available: true,
         },
         quantity: 1,
@@ -205,9 +207,9 @@ export const DEMO_ORDERS: DemoOrder[] = [
       landmark: "Near Total Filling Station",
     },
     paymentMethod: "pay-on-delivery",
-    subtotal: 10700,
+    subtotal: 4000,
     deliveryFee: 500,
-    total: 11200,
+    total: 4500,
     status: "preparing",
     createdAt: new Date("2024-09-28T14:15:00"),
   },

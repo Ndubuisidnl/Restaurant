@@ -89,7 +89,7 @@ export default function FavoritesPage() {
                   <h3 className="font-medium text-[#1A0A00] text-sm mb-1">{item.name}</h3>
                   <p className="text-[#7A5C44] text-xs line-clamp-2 mb-3">{item.description}</p>
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#C8873F]">{formatCurrency(item.price)}</span>
+                    <span className="font-bold text-[#C8873F]">{item.priceDisplay ?? formatCurrency(item.price)}</span>
                     <button
                       onClick={() => handleAdd(item)}
                       disabled={!item.available}

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Heart, Plus, X, SlidersHorizontal } from "lucide-react";
+import { Search, Heart, Plus, X, SlidersHorizontal, Check } from "lucide-react";
 import Footer from "@/components/footer/Footer";
 import { MENU_CATEGORIES, DEMO_MENU_ITEMS, getMenuItemsByCategory, searchMenuItems } from "@/lib/data/menu";
 import { useCartStore } from "@/lib/store/cartStore";
@@ -16,6 +16,7 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<MenuCategory | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [sizePicker, setSizePicker] = useState<Record<string, number | null>>({});
 
   const { addItem, openCart } = useCartStore();
   const { toggleFavorite, isFavorite } = useFavoritesStore();
@@ -37,9 +38,25 @@ export default function MenuPage() {
   }, [activeCategory, searchQuery, filterTag]);
 
   const handleAdd = (item: MenuItem) => {
-    addItem(item);
-    success(`${item.name} added to cart`);
+    if (item.priceSecondary) {
+      if (sizePicker[item.id] === undefined || sizePicker[item.id] === null) {
+        setSizePicker((prev) => ({ ...prev, [item.id]: null }));
+        return;
+      }
+      const chosenPrice = sizePicker[item.id] as number;
+      const itemWithPrice: MenuItem = { ...item, price: chosenPrice, priceSecondary: undefined, priceDisplay: undefined };
+      addItem(itemWithPrice);
+      success(`${item.name} (${formatCurrency(chosenPrice)}) added to cart`);
+      setSizePicker((prev) => { const next = { ...prev }; delete next[item.id]; return next; });
+    } else {
+      addItem(item);
+      success(`${item.name} added to cart`);
+    }
     openCart();
+  };
+
+  const handleSizeSelect = (item: MenuItem, price: number) => {
+    setSizePicker((prev) => ({ ...prev, [item.id]: price }));
   };
 
   return (
@@ -178,16 +195,59 @@ export default function MenuPage() {
                   <div className="p-4">
                     <h3 className="font-serif font-semibold text-[#1A0A00] text-sm leading-snug mb-1">{item.name}</h3>
                     <p className="text-[#7A5C44] text-xs leading-relaxed line-clamp-2 mb-3">{item.description}</p>
+
+                    {/* Two-price size picker */}
+                    <AnimatePresence>
+                      {item.priceSecondary && sizePicker[item.id] !== undefined && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          className="mb-3 flex gap-2"
+                        >
+                          <button
+                            onClick={() => handleSizeSelect(item, item.price)}
+                            className={`flex-1 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+                              sizePicker[item.id] === item.price
+                                ? "bg-[#3B1A08] border-[#3B1A08] text-white"
+                                : "border-[#E8D5BF] text-[#7A5C44] hover:border-[#3B1A08]"
+                            }`}
+                          >
+                            {formatCurrency(item.price)}
+                          </button>
+                          <button
+                            onClick={() => handleSizeSelect(item, item.priceSecondary!)}
+                            className={`flex-1 py-1.5 text-xs font-medium rounded-full border transition-colors ${
+                              sizePicker[item.id] === item.priceSecondary
+                                ? "bg-[#3B1A08] border-[#3B1A08] text-white"
+                                : "border-[#E8D5BF] text-[#7A5C44] hover:border-[#3B1A08]"
+                            }`}
+                          >
+                            {formatCurrency(item.priceSecondary!)}
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-[#C8873F]">{formatCurrency(item.price)}</span>
+                      <span className="font-bold text-[#C8873F]">
+                        {item.priceDisplay ?? formatCurrency(item.price)}
+                      </span>
                       <button
                         onClick={() => handleAdd(item)}
                         disabled={!item.available}
-                        className="flex items-center gap-1.5 px-3 py-1.5 bg-[#3B1A08] hover:bg-[#C8873F] text-white text-xs font-medium rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-xs font-medium rounded-full transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${
+                          sizePicker[item.id] != null
+                            ? "bg-[#C8873F] hover:bg-[#3B1A08]"
+                            : "bg-[#3B1A08] hover:bg-[#C8873F]"
+                        }`}
                         aria-label={`Add ${item.name} to cart`}
                       >
-                        <Plus className="w-3.5 h-3.5" />
-                        Add
+                        {sizePicker[item.id] != null ? (
+                          <><Check className="w-3.5 h-3.5" /> Add</>
+                        ) : (
+                          <><Plus className="w-3.5 h-3.5" /> {item.priceSecondary ? "Select" : "Add"}</>
+                        )}
                       </button>
                     </div>
                   </div>
