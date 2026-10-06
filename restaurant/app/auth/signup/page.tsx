@@ -51,9 +51,9 @@ export default function SignupPage() {
           <h1 className="font-serif text-2xl font-bold text-[#1A0A00] mb-2">Create Account</h1>
           <p className="text-[#7A5C44] text-sm mb-5">Join Wood House Cafe for a personalised experience</p>
 
-          <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
+          {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
             ⚠️ Demo mode — account data is not saved. Backend coming soon.
-          </p>
+          </p> */}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>

@@ -72,9 +72,9 @@ export default function CheckoutPage() {
             </div>
             <h2 className="font-serif text-3xl font-bold text-[#1A0A00] mb-3">Order Placed!</h2>
             <p className="text-[#7A5C44] mb-2">Thank you for your order! We will confirm via WhatsApp shortly.</p>
-            <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mt-4">
+            {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mt-4">
               ⚠️ Demo mode — no real order was placed. Backend coming soon.
-            </p>
+            </p> */}
             <Link href="/" className="mt-6 inline-block px-6 py-2.5 bg-[#3B1A08] text-white rounded-full hover:bg-[#C8873F] transition-colors font-medium">
               Back to Home
             </Link>
@@ -91,9 +91,9 @@ export default function CheckoutPage() {
         <div className="max-w-5xl mx-auto">
           <h1 className="font-serif text-4xl font-bold text-white mb-2">Checkout</h1>
           <p className="text-white/60">Review your order and complete your details.</p>
-          <p className="text-amber-400/70 text-xs mt-2 bg-amber-400/10 inline-block px-4 py-1.5 rounded-full">
+          {/* <p className="text-amber-400/70 text-xs mt-2 bg-amber-400/10 inline-block px-4 py-1.5 rounded-full">
             ⚠️ Demo mode — orders are not saved. Backend coming soon.
-          </p>
+          </p> */}
         </div>
       </div>
 

@@ -59,9 +59,9 @@ export default function ResetPasswordPage() {
               <h1 className="font-serif text-2xl font-bold text-[#1A0A00] mb-2">Reset Password</h1>
               <p className="text-[#7A5C44] text-sm mb-5">Enter your new password below.</p>
 
-              <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
+              {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
                 ⚠️ Demo mode — password will not actually change. Backend coming soon.
-              </p>
+              </p> */}
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>

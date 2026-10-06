@@ -49,9 +49,9 @@ export default function ForgotPasswordPage() {
               <p className="text-[#7A5C44] text-sm mb-4">
                 A password reset link has been sent to <strong>{getValues("email")}</strong>.
               </p>
-              <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg">
+              {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg">
                 ⚠️ Demo mode — no email was actually sent.
-              </p>
+              </p> */}
               <Link href="/auth/login" className="mt-5 block text-[#C8873F] text-sm hover:underline">Back to Login</Link>
             </div>
           ) : (
@@ -62,9 +62,9 @@ export default function ForgotPasswordPage() {
               <h1 className="font-serif text-2xl font-bold text-[#1A0A00] mb-2">Forgot Password?</h1>
               <p className="text-[#7A5C44] text-sm mb-6">Enter your email and we&apos;ll send you a link to reset your password.</p>
 
-              <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
+              {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
                 ⚠️ Demo mode — no email will be sent. Backend coming soon.
-              </p>
+              </p> */}
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <div>

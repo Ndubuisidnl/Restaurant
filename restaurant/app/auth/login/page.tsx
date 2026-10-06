@@ -56,9 +56,9 @@ export default function LoginPage() {
           <h1 className="font-serif text-2xl font-bold text-[#1A0A00] mb-2">Login</h1>
           <p className="text-[#7A5C44] text-sm mb-6">Sign in to your Wood House Cafe account</p>
 
-          <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
+          {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
             ⚠️ Demo mode — any email/password will log you in. Backend coming soon.
-          </p>
+          </p> */}
 
           {error && <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-200 px-4 py-2 rounded-lg">{error}</p>}
 

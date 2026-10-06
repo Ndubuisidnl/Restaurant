@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Heart, Plus } from "lucide-react";
 import Link from "next/link";
@@ -58,18 +59,28 @@ export default function MenuCategoryPage({ params }: Props) {
               transition={{ delay: i * 0.06 }}
               className="bg-white rounded-2xl border border-[#E8D5BF] overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-1 transition-all"
             >
-              {/* IMAGE: {item.imageLabel} */}
-              <div className="relative aspect-[4/3] bg-gradient-to-br from-[#E8C99A] to-[#C8873F] flex items-center justify-center">
-                <span className="text-4xl" aria-hidden="true">🍽️</span>
+              {/* Image Container */}
+              <div className="relative aspect-[4/3] bg-gradient-to-br from-[#E8C99A] to-[#C8873F] flex items-center justify-center overflow-hidden">
+                {item.image ? (
+                  <Image
+                    src={item.image}
+                    alt={item.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  />
+                ) : (
+                  <span className="text-4xl" aria-hidden="true">🍽️</span>
+                )}
                 <button
                   onClick={() => toggleFavorite(item)}
-                  className="absolute top-3 right-3 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow"
+                  className="absolute top-3 right-3 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow z-10"
                   aria-label={`${isFavorite(item.id) ? "Remove from" : "Add to"} favorites`}
                 >
                   <Heart className={`w-4 h-4 ${isFavorite(item.id) ? "fill-red-500 text-red-500" : "text-[#7A5C44]"}`} />
                 </button>
                 {!item.available && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
                     <span className="text-white font-medium text-sm">Unavailable</span>
                   </div>
                 )}
