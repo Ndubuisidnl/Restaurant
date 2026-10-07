@@ -8,9 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Coffee, KeyRound, CheckCircle2 } from "lucide-react";
 import { resetPasswordSchema, type ResetPasswordSchema } from "@/lib/validations";
-
-// SUPABASE: FUTURE BACKEND INTEGRATION - UPDATE PASSWORD
-// Replace onSubmit with: await supabase.auth.updateUser({ password: data.password })
+import { createClient } from "@/lib/supabase/client";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -18,18 +16,22 @@ export default function ResetPasswordPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState("");
 
   const { register, handleSubmit, formState: { errors } } = useForm<ResetPasswordSchema>({
     resolver: zodResolver(resetPasswordSchema),
   });
 
-  const onSubmit = async (_data: ResetPasswordSchema) => {
+  const onSubmit = async (data: ResetPasswordSchema) => {
     setSubmitting(true);
-    // SUPABASE: FUTURE BACKEND INTEGRATION - RESET PASSWORD
-    await new Promise((r) => setTimeout(r, 900));
-    setSubmitting(false);
-    setDone(true);
-    setTimeout(() => router.push("/auth/login"), 2500);
+    setError("");
+    try {
+      const { error } = await createClient().auth.updateUser({ password: data.password });
+      if (error) throw error;
+      setDone(true);
+      setTimeout(() => router.push("/auth/login"), 2500);
+    } catch (err) { setError(err instanceof Error ? err.message : "We couldn't update your password."); }
+    finally { setSubmitting(false); }
   };
 
   return (
@@ -59,11 +61,9 @@ export default function ResetPasswordPage() {
               <h1 className="font-serif text-2xl font-bold text-[#1A0A00] mb-2">Reset Password</h1>
               <p className="text-[#7A5C44] text-sm mb-5">Enter your new password below.</p>
 
-              {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
-                ⚠️ Demo mode — password will not actually change. Backend coming soon.
-              </p> */}
 
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {error && <p role="alert" className="text-red-600 text-sm bg-red-50 border border-red-200 px-4 py-2 rounded-lg">{error}</p>}
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-[#3B1A08] mb-1">New Password</label>
                   <div className="relative">

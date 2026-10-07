@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Heart, Plus, X, SlidersHorizontal } from "lucide-react";
 import Footer from "@/components/footer/Footer";
-import { MENU_CATEGORIES, DEMO_MENU_ITEMS, getMenuItemsByCategory, searchMenuItems } from "@/lib/data/menu";
+import { MENU_CATEGORIES } from "@/lib/data/menu";
+import { fetchMenuItems } from "@/lib/data/menu-api";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useFavoritesStore } from "@/lib/store/favoritesStore";
 import { useToastStore } from "@/lib/store/toastStore";
@@ -16,6 +17,19 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<MenuCategory | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuError, setMenuError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    fetchMenuItems()
+      .then((items) => { if (active) setMenuItems(items); })
+      .catch((error) => {
+        console.error("Unable to load menu", error);
+        if (active) setMenuError("The menu is temporarily unavailable. Please try again later.");
+      });
+    return () => { active = false; };
+  }, []);
 
   const { addItem, openCart } = useCartStore();
   const { toggleFavorite, isFavorite } = useFavoritesStore();
@@ -23,18 +37,18 @@ export default function MenuPage() {
 
   const filteredItems = useMemo(() => {
     let items: MenuItem[];
-    if (searchQuery.trim()) {
-      items = searchMenuItems(searchQuery);
-    } else if (activeCategory === "all") {
-      items = DEMO_MENU_ITEMS;
-    } else {
-      items = getMenuItemsByCategory(activeCategory);
-    }
+    items = menuItems.filter((item) => {
+      const matchesCategory = activeCategory === "all" || item.category === activeCategory;
+      const query = searchQuery.trim().toLowerCase();
+      const matchesQuery = !query || item.name.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query) || item.category.toLowerCase().includes(query);
+      return matchesCategory && matchesQuery;
+    });
     if (filterTag) {
       items = items.filter((i) => i.tags?.includes(filterTag));
     }
     return items;
-  }, [activeCategory, searchQuery, filterTag]);
+  }, [menuItems, activeCategory, searchQuery, filterTag]);
 
   const handleAdd = (item: MenuItem) => {
     addItem(item);
@@ -54,9 +68,6 @@ export default function MenuPage() {
           <p className="text-white/60 max-w-xl mx-auto text-base">
             Browse our full menu from artisanal coffee to hearty mains and decadent desserts.
           </p>
-          {/* <p className="text-amber-400/70 text-xs mt-3 bg-amber-400/10 inline-block px-4 py-1.5 rounded-full">
-            ⚠️ Demo prices — will be updated with official Wood House Cafe pricing
-          </p> */}
 
           {/* Search */}
           <div className="relative max-w-md mx-auto mt-6">
@@ -126,8 +137,8 @@ export default function MenuPage() {
       <div className="flex-1 max-w-7xl mx-auto px-4 pb-16 w-full">
         {filteredItems.length === 0 ? (
           <div className="text-center py-20">
-            <p className="font-serif text-2xl text-[#3B1A08] mb-2">No items found</p>
-            <p className="text-[#7A5C44]">Try a different category or search term.</p>
+            <p className="font-serif text-2xl text-[#3B1A08] mb-2">{menuError ? "Menu unavailable" : menuItems.length ? "No items found" : "Our menu is being updated"}</p>
+            <p className="text-[#7A5C44]">{menuError || (menuItems.length ? "Try a different category or search term." : "Please check back soon.")}</p>
           </div>
         ) : (
           <AnimatePresence mode="popLayout">

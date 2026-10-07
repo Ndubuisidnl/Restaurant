@@ -4,23 +4,33 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Heart, Plus, ShoppingBag, ArrowRight } from "lucide-react";
-import { getFeaturedMenuItems } from "@/lib/data/menu";
+import { fetchMenuItems } from "@/lib/data/menu-api";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useFavoritesStore } from "@/lib/store/favoritesStore";
 import { useToastStore } from "@/lib/store/toastStore";
 import { formatCurrency } from "@/lib/data/demo";
+import { useEffect, useState } from "react";
+import type { MenuItem } from "@/types";
 
 // ============================================================
 // FEATURED MENU SECTION
 // ============================================================
 
 export default function FeaturedMenu() {
-  const featuredItems = getFeaturedMenuItems().slice(0, 6);
+  const [featuredItems, setFeaturedItems] = useState<MenuItem[]>([]);
   const { addItem, openCart } = useCartStore();
   const { toggleFavorite, isFavorite } = useFavoritesStore();
   const { success } = useToastStore();
 
-  const handleAddToCart = (item: ReturnType<typeof getFeaturedMenuItems>[number]) => {
+  useEffect(() => {
+    let active = true;
+    fetchMenuItems()
+      .then((items) => { if (active) setFeaturedItems(items.filter((item) => item.featured).slice(0, 6)); })
+      .catch((error) => console.error("Unable to load featured menu items", error));
+    return () => { active = false; };
+  }, []);
+
+  const handleAddToCart = (item: MenuItem) => {
     addItem(item);
     success(`${item.name} added to cart`);
     openCart();
@@ -138,7 +148,6 @@ export default function FeaturedMenu() {
                     <span className="font-bold text-[#C8873F] text-base">
                       {formatCurrency(item.price)}
                     </span>
-                    <span className="text-[#7A5C44] text-xs ml-1">(demo)</span>
                   </div>
                   <button
                     onClick={() => handleAddToCart(item)}

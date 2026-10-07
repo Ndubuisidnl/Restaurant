@@ -8,10 +8,7 @@ import { MapPin, Phone, Clock, MessageCircle, CheckCircle2, ChevronDown } from "
 import Footer from "@/components/footer/Footer";
 import { contactSchema, type ContactSchema } from "@/lib/validations";
 import { BUSINESS_INFO } from "@/lib/data/demo";
-import type { Metadata } from "next";
-
-// SUPABASE: FUTURE BACKEND INTEGRATION - CONTACT FORM SUBMISSION
-// Replace onSubmit with real email/Supabase insert logic.
+import { createClient } from "@/lib/supabase/client";
 
 const SUBJECTS = [
   { value: "reservation", label: "Reservation Inquiry" },
@@ -25,6 +22,7 @@ const SUBJECTS = [
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const { register, handleSubmit, formState: { errors } } = useForm<ContactSchema>({
     resolver: zodResolver(contactSchema),
@@ -33,11 +31,26 @@ export default function ContactPage() {
 
   const onSubmit = async (data: ContactSchema) => {
     setSubmitting(true);
-    // SUPABASE: FUTURE BACKEND INTEGRATION - INSERT CONTACT MESSAGE
-    console.log("Contact form (demo):", data);
-    await new Promise((r) => setTimeout(r, 1000));
-    setSubmitting(false);
-    setSubmitted(true);
+    setSubmitError("");
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from("contact_messages").insert({
+        user_id: user?.id ?? null,
+        name: data.name,
+        email: data.email,
+        phone: data.phone || "",
+        subject: data.subject,
+        message: data.message,
+      });
+      if (error) throw error;
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Contact message submission failed", error);
+      setSubmitError(error instanceof Error ? error.message : "We couldn't send your message. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -122,9 +135,6 @@ export default function ContactPage() {
           {/* Contact Form */}
           <div>
             <h2 className="font-serif text-2xl font-bold text-[#1A0A00] mb-6">Send a Message</h2>
-            {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
-              ⚠️ Demo mode — messages are not sent. Backend coming soon.
-            </p> */}
 
             {submitted ? (
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center py-12">
@@ -137,6 +147,7 @@ export default function ContactPage() {
               </motion.div>
             ) : (
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                {submitError && <p role="alert" className="text-red-600 text-sm bg-red-50 border border-red-200 px-4 py-2 rounded-lg">{submitError}</p>}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-[#3B1A08] mb-1">Name *</label>

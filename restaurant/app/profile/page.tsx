@@ -1,15 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { User, BookOpen, UtensilsCrossed, Heart, MapPin, Settings, LogOut, ArrowRight } from "lucide-react";
 import Footer from "@/components/footer/Footer";
 import { useAuthUIStore } from "@/lib/store/authUIStore";
-import { DEMO_CUSTOMER_PROFILE, DEMO_ORDERS, DEMO_RESERVATIONS } from "@/lib/data/demo";
-
-// SUPABASE: FUTURE BACKEND INTEGRATION - LOAD CUSTOMER PROFILE
-// Replace demo data with: const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+import { createClient } from "@/lib/supabase/client";
 
 const PROFILE_LINKS = [
   { href: "/profile/orders", icon: BookOpen, label: "My Orders", desc: "View order history" },
@@ -21,9 +18,34 @@ const PROFILE_LINKS = [
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { isDemoLoggedIn, demoUserName, demoUserEmail, demoLogout } = useAuthUIStore();
+  const { isLoggedIn, userName, userEmail, clearAuthenticatedUser } = useAuthUIStore();
+  const [stats, setStats] = useState({ orders: 0, reservations: 0, favorites: 0, memberSince: "—" });
 
-  if (!isDemoLoggedIn) {
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const supabase = createClient(); const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const [orders, reservations, favorites, profile] = await Promise.all([
+          supabase.from("orders").select("id", { count: "exact", head: true }),
+          supabase.from("reservations").select("id", { count: "exact", head: true }),
+          supabase.from("favorites").select("menu_item_id", { count: "exact", head: true }),
+          supabase.from("profiles").select("created_at").eq("id", user.id).maybeSingle(),
+        ]);
+        if (active) setStats({
+          orders: orders.count || 0,
+          reservations: reservations.count || 0,
+          favorites: favorites.count || 0,
+          memberSince: profile.data?.created_at ? new Date(profile.data.created_at).toLocaleDateString("en-NG", { month: "short", year: "numeric" }) : "—",
+        });
+      } catch (error) { console.error("Unable to load profile summary", error); }
+    };
+    void load();
+    return () => { active = false; };
+  }, []);
+
+  if (!isLoggedIn) {
     return (
       <div className="flex flex-col min-h-screen bg-[#FDF6EE]">
         <div className="flex-1 flex items-center justify-center px-4 pt-20 text-center">
@@ -41,9 +63,8 @@ export default function ProfilePage() {
     );
   }
 
-  const handleLogout = () => {
-    demoLogout();
-    router.push("/");
+  const handleLogout = async () => {
+    try { await createClient().auth.signOut(); } finally { clearAuthenticatedUser(); router.push("/"); }
   };
 
   return (
@@ -52,11 +73,11 @@ export default function ProfilePage() {
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-full bg-[#C8873F] flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-2xl font-bold">{demoUserName.charAt(0).toUpperCase()}</span>
+              <span className="text-white text-2xl font-bold">{userName.charAt(0).toUpperCase()}</span>
             </div>
             <div>
-              <h1 className="font-serif text-3xl font-bold text-white">{demoUserName}</h1>
-              <p className="text-white/60 text-sm mt-0.5">{demoUserEmail}</p>
+              <h1 className="font-serif text-3xl font-bold text-white">{userName}</h1>
+              <p className="text-white/60 text-sm mt-0.5">{userEmail}</p>
               {/* <span className="text-amber-400/70 text-xs bg-amber-400/10 px-3 py-0.5 rounded-full inline-block mt-1">
                 Demo Account
               </span> */}
@@ -69,10 +90,10 @@ export default function ProfilePage() {
         {/* Stats */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           {[
-            { label: "Orders", value: DEMO_ORDERS.length },
-            { label: "Reservations", value: DEMO_RESERVATIONS.length },
-            { label: "Favorites", value: "—" },
-            { label: "Member Since", value: "Sep 2024" },
+            { label: "Orders", value: stats.orders },
+            { label: "Reservations", value: stats.reservations },
+            { label: "Favorites", value: stats.favorites },
+            { label: "Member Since", value: stats.memberSince },
           ].map(({ label, value }) => (
             <div key={label} className="bg-white border border-[#E8D5BF] rounded-xl p-4 text-center">
               <p className="font-serif text-2xl font-bold text-[#C8873F]">{value}</p>

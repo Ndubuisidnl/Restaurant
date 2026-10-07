@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useAuthUIStore } from "@/lib/store/authUIStore";
+import { createClient } from "@/lib/supabase/client";
+import { useFavoritesStore } from "@/lib/store/favoritesStore";
 
 // ============================================================
 // NAVIGATION LINKS
@@ -47,7 +49,7 @@ export default function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
   const { getItemCount, openCart } = useCartStore();
-  const { isDemoLoggedIn, demoUserName, demoLogout } = useAuthUIStore();
+  const { isLoggedIn, userName, setAuthenticatedUser, clearAuthenticatedUser } = useAuthUIStore();
 
   const cartCount = getItemCount();
 
@@ -58,10 +60,65 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  useEffect(() => {
+    let alive = true;
+    let unsubscribe = () => {};
+
+    try {
+      const supabase = createClient();
+      const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (!alive) return;
+        if (session?.user) {
+          const user = session.user;
+          setAuthenticatedUser(
+            user.user_metadata?.full_name || user.email?.split("@")[0] || "Customer",
+            user.email || ""
+          );
+          void useFavoritesStore.getState().syncFavorites(user.id);
+        } else {
+          clearAuthenticatedUser();
+          void useFavoritesStore.getState().syncFavorites(null);
+        }
+      });
+      unsubscribe = () => data.subscription.unsubscribe();
+      void supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!alive) return;
+        if (user) {
+          setAuthenticatedUser(
+            user.user_metadata?.full_name || user.email?.split("@")[0] || "Customer",
+            user.email || ""
+          );
+          void useFavoritesStore.getState().syncFavorites(user.id);
+        } else {
+          clearAuthenticatedUser();
+          void useFavoritesStore.getState().syncFavorites(null);
+        }
+      });
+    } catch {
+      // Keep public pages usable until Supabase credentials are configured.
+    }
+
+    return () => {
+      alive = false;
+      unsubscribe();
+    };
+  }, [clearAuthenticatedUser, setAuthenticatedUser]);
+
+  const handleLogout = async () => {
+    try {
+      await createClient().auth.signOut();
+    } finally {
+      clearAuthenticatedUser();
+    }
+  };
+
   // Close menus on route change
   useEffect(() => {
-    setMobileOpen(false);
-    setUserMenuOpen(false);
+    const timeout = window.setTimeout(() => {
+      setMobileOpen(false);
+      setUserMenuOpen(false);
+    }, 0);
+    return () => window.clearTimeout(timeout);
   }, [pathname]);
 
   // Lock body scroll when mobile menu is open
@@ -162,7 +219,7 @@ export default function Navbar() {
               </button>
 
               {/* Auth / User */}
-              {isDemoLoggedIn ? (
+              {isLoggedIn ? (
                 <div className="relative">
                   <button
                     id="user-menu-button"
@@ -173,9 +230,9 @@ export default function Navbar() {
                     aria-label="User account menu"
                   >
                     <div className="w-6 h-6 rounded-full bg-[#C8873F] flex items-center justify-center text-xs font-bold">
-                      {demoUserName.charAt(0).toUpperCase()}
+                      {userName.charAt(0).toUpperCase()}
                     </div>
-                    <span className="max-w-[100px] truncate">{demoUserName.split(" ")[0]}</span>
+                    <span className="max-w-[100px] truncate">{userName.split(" ")[0]}</span>
                     <ChevronDown
                       className={`w-3 h-3 transition-transform ${userMenuOpen ? "rotate-180" : ""}`}
                       aria-hidden="true"
@@ -194,7 +251,7 @@ export default function Navbar() {
                         aria-labelledby="user-menu-button"
                       >
                         <div className="px-4 py-3 border-b border-white/10">
-                          <p className="text-white text-sm font-medium">{demoUserName}</p>
+                          <p className="text-white text-sm font-medium">{userName}</p>
                           <p className="text-white/50 text-xs mt-0.5">Demo Account</p>
                         </div>
                         {[
@@ -218,7 +275,7 @@ export default function Navbar() {
                         <div className="border-t border-white/10">
                           <button
                             role="menuitem"
-                            onClick={demoLogout}
+                            onClick={handleLogout}
                             className="w-full flex items-center gap-3 px-4 py-2.5 text-red-400 hover:text-red-300 hover:bg-white/5 text-sm transition-colors"
                           >
                             <LogOut className="w-4 h-4" aria-hidden="true" />
@@ -359,7 +416,7 @@ export default function Navbar() {
 
                 {/* Auth Links */}
                 <div className="space-y-1 px-4">
-                  {isDemoLoggedIn ? (
+                  {isLoggedIn ? (
                     <>
                       <div className="px-4 py-2">
                         <p className="text-[#C8873F] text-xs font-medium uppercase tracking-wider">
@@ -384,7 +441,7 @@ export default function Navbar() {
                         </Link>
                       ))}
                       <button
-                        onClick={demoLogout}
+                        onClick={handleLogout}
                         className="w-full flex items-center gap-3 px-4 py-2.5 text-red-400 hover:text-red-300 hover:bg-white/5 rounded-lg text-sm transition-colors"
                       >
                         <LogOut className="w-4 h-4" aria-hidden="true" />

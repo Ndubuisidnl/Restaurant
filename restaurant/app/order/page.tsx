@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ShoppingBag, Heart, Plus, ArrowRight } from "lucide-react";
 import Footer from "@/components/footer/Footer";
-import { MENU_CATEGORIES, DEMO_MENU_ITEMS } from "@/lib/data/menu";
+import { MENU_CATEGORIES } from "@/lib/data/menu";
+import { fetchMenuItems } from "@/lib/data/menu-api";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useFavoritesStore } from "@/lib/store/favoritesStore";
 import { useToastStore } from "@/lib/store/toastStore";
@@ -12,6 +14,12 @@ import { formatCurrency } from "@/lib/data/demo";
 import type { MenuItem } from "@/types";
 
 export default function OrderPage() {
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  useEffect(() => {
+    let active = true;
+    fetchMenuItems().then((items) => { if (active) setMenuItems(items); }).catch((error) => console.error("Unable to load order menu", error));
+    return () => { active = false; };
+  }, []);
   const { addItem, openCart } = useCartStore();
   const { toggleFavorite, isFavorite } = useFavoritesStore();
   const { success } = useToastStore();
@@ -33,9 +41,6 @@ export default function OrderPage() {
         <p className="text-white/60 max-w-xl mx-auto">
           Browse the menu, add items to your cart, and checkout for delivery or pickup.
         </p>
-        {/* <p className="text-amber-400/70 text-xs mt-3 bg-amber-400/10 inline-block px-4 py-1.5 rounded-full">
-          ⚠️ Demo prices — actual pricing will be confirmed when backend is live
-        </p> */}
 
         {/* Cart CTA */}
         <div className="mt-6">
@@ -52,7 +57,7 @@ export default function OrderPage() {
       {/* Categories */}
       <div className="max-w-7xl mx-auto px-4 py-10 w-full">
         {MENU_CATEGORIES.map((category) => {
-          const items = DEMO_MENU_ITEMS.filter((i) => i.category === category.id);
+          const items = menuItems.filter((i) => i.category === category.id);
           if (items.length === 0) return null;
           return (
             <section key={category.id} className="mb-14" aria-labelledby={`cat-${category.id}`}>

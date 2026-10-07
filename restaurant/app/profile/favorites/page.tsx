@@ -11,11 +11,8 @@ import { useToastStore } from "@/lib/store/toastStore";
 import { formatCurrency } from "@/lib/data/demo";
 import type { MenuItem } from "@/types";
 
-// SUPABASE: FUTURE BACKEND INTEGRATION - LOAD SAVED FAVORITES
-// In backend phase, favorites will be stored in Supabase and synced to user account.
-
 export default function FavoritesPage() {
-  const { isDemoLoggedIn } = useAuthUIStore();
+  const { isLoggedIn } = useAuthUIStore();
   const { favorites, toggleFavorite } = useFavoritesStore();
   const { addItem, openCart } = useCartStore();
   const { success } = useToastStore();
@@ -26,7 +23,7 @@ export default function FavoritesPage() {
     openCart();
   };
 
-  if (!isDemoLoggedIn) {
+  if (!isLoggedIn) {
     return (
       <div className="flex flex-col min-h-screen bg-[#FDF6EE]">
         <div className="flex-1 flex items-center justify-center px-4 pt-20 text-center">

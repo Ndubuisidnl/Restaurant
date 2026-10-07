@@ -1,19 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, User, Bell, Lock, Trash2, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, User, Bell, Lock, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Footer from "@/components/footer/Footer";
 import { useAuthUIStore } from "@/lib/store/authUIStore";
-
-// SUPABASE: FUTURE BACKEND INTEGRATION - ACCOUNT SETTINGS
-// Profile updates, notification preferences, and account deletion will be handled via Supabase.
+import { createClient } from "@/lib/supabase/client";
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { isDemoLoggedIn, demoUserName, demoUserEmail, demoLogout } = useAuthUIStore();
+  const { isLoggedIn, userName, userEmail, setAuthenticatedUser, clearAuthenticatedUser } = useAuthUIStore();
+  const [fullName, setFullName] = useState(userName);
+  const [phone, setPhone] = useState("");
+  const [preferences, setPreferences] = useState({ order_updates: true, reservation_reminders: true, promotions: false });
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-  if (!isDemoLoggedIn) {
+  useEffect(() => {
+    let active = true;
+    const load = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data, error: queryError } = await supabase.from("profiles").select("full_name,phone,preferences").eq("id", user.id).maybeSingle();
+        if (queryError) throw queryError;
+        if (active) {
+          setFullName(data?.full_name || user.user_metadata?.full_name || "");
+          setPhone(data?.phone || user.user_metadata?.phone || "");
+          if (data?.preferences) setPreferences((current) => ({ ...current, ...data.preferences }));
+        }
+      } catch (loadError) { console.error("Unable to load profile settings", loadError); if (active) setError("We couldn't load your profile settings."); }
+    };
+    void load();
+    return () => { active = false; };
+  }, []);
+
+  if (!isLoggedIn) {
     return (
       <div className="flex flex-col min-h-screen bg-[#FDF6EE]">
         <div className="flex-1 flex items-center justify-center px-4 pt-20 text-center">
@@ -27,9 +52,31 @@ export default function SettingsPage() {
     );
   }
 
-  const handleLogout = () => {
-    demoLogout();
-    router.push("/");
+  const saveProfile = async () => {
+    setSaving(true); setError(""); setMessage("");
+    try {
+      const supabase = createClient(); const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Please sign in again.");
+      const { error } = await supabase.from("profiles").update({ full_name: fullName.trim(), phone: phone.trim() }).eq("id", user.id);
+      if (error) throw error;
+      await supabase.auth.updateUser({ data: { full_name: fullName.trim(), phone: phone.trim() } });
+      setAuthenticatedUser(fullName.trim(), user.email || ""); setMessage("Profile details saved.");
+    } catch (saveError) { setError(saveError instanceof Error ? saveError.message : "We couldn't save your profile."); }
+    finally { setSaving(false); }
+  };
+
+  const savePreference = async (key: keyof typeof preferences, value: boolean) => {
+    const next = { ...preferences, [key]: value }; setPreferences(next); setError("");
+    try {
+      const supabase = createClient(); const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Please sign in again.");
+      const { error } = await supabase.from("profiles").update({ preferences: next }).eq("id", user.id);
+      if (error) throw error;
+    } catch (saveError) { setPreferences(preferences); setError(saveError instanceof Error ? saveError.message : "We couldn't save this preference."); }
+  };
+
+  const handleLogout = async () => {
+    try { await createClient().auth.signOut(); } finally { clearAuthenticatedUser(); router.push("/"); }
   };
 
   return (
@@ -45,9 +92,8 @@ export default function SettingsPage() {
       </div>
 
       <div className="flex-1 max-w-2xl mx-auto px-4 py-8 w-full space-y-5">
-        {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg">
-          ⚠️ Demo mode — settings changes are not saved. Backend coming soon.
-        </p> */}
+        {error && <p role="alert" className="text-red-600 text-sm bg-red-50 border border-red-200 px-4 py-3 rounded-lg">{error}</p>}
+        {message && <p className="text-emerald-700 text-sm bg-emerald-50 border border-emerald-200 px-4 py-3 rounded-lg">{message}</p>}
 
         {/* Profile Info */}
         <div className="bg-white border border-[#E8D5BF] rounded-xl p-5">
@@ -58,21 +104,22 @@ export default function SettingsPage() {
           <div className="space-y-3">
             <div>
               <label className="block text-xs font-medium text-[#7A5C44] mb-1">Full Name</label>
-              <input defaultValue={demoUserName} className="w-full px-4 py-2.5 border border-[#E8D5BF] rounded-lg text-sm focus:outline-none focus:border-[#C8873F]" />
+              <input value={fullName} onChange={(event) => setFullName(event.target.value)} className="w-full px-4 py-2.5 border border-[#E8D5BF] rounded-lg text-sm focus:outline-none focus:border-[#C8873F]" />
             </div>
             <div>
               <label className="block text-xs font-medium text-[#7A5C44] mb-1">Email</label>
-              <input defaultValue={demoUserEmail} type="email" className="w-full px-4 py-2.5 border border-[#E8D5BF] rounded-lg text-sm focus:outline-none focus:border-[#C8873F]" />
+              <input value={userEmail} type="email" readOnly className="w-full px-4 py-2.5 border border-[#E8D5BF] rounded-lg text-sm bg-gray-50" />
             </div>
             <div>
               <label className="block text-xs font-medium text-[#7A5C44] mb-1">Phone</label>
-              <input defaultValue="+234 800 000 0000" type="tel" className="w-full px-4 py-2.5 border border-[#E8D5BF] rounded-lg text-sm focus:outline-none focus:border-[#C8873F]" />
+              <input value={phone} onChange={(event) => setPhone(event.target.value)} type="tel" className="w-full px-4 py-2.5 border border-[#E8D5BF] rounded-lg text-sm focus:outline-none focus:border-[#C8873F]" />
             </div>
             <button
-              className="px-5 py-2 bg-[#3B1A08] hover:bg-[#C8873F] text-white text-sm font-medium rounded-lg transition-colors"
-              onClick={() => alert("Save changes — demo mode, no backend action")}
+              disabled={saving}
+              className="px-5 py-2 bg-[#3B1A08] hover:bg-[#C8873F] text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-60"
+              onClick={() => void saveProfile()}
             >
-              Save Changes
+              {saving ? "Saving…" : "Save Changes"}
             </button>
           </div>
         </div>
@@ -85,17 +132,17 @@ export default function SettingsPage() {
           </div>
           <div className="space-y-3">
             {[
-              { label: "Order updates", desc: "Get notified when your order status changes" },
-              { label: "Reservation reminders", desc: "Reminders before your reservation" },
-              { label: "Promotions & offers", desc: "Special deals from Wood House Cafe" },
-            ].map(({ label, desc }) => (
+              { key: "order_updates" as const, label: "Order updates", desc: "Get notified when your order status changes" },
+              { key: "reservation_reminders" as const, label: "Reservation reminders", desc: "Reminders before your reservation" },
+              { key: "promotions" as const, label: "Promotions & offers", desc: "Special deals from Wood House Cafe" },
+            ].map(({ key, label, desc }) => (
               <div key={label} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-[#1A0A00]">{label}</p>
                   <p className="text-xs text-[#7A5C44]">{desc}</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <input type="checkbox" checked={preferences[key]} onChange={(event) => void savePreference(key, event.target.checked)} className="sr-only peer" />
                   <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#C8873F]"></div>
                 </label>
               </div>
@@ -114,20 +161,7 @@ export default function SettingsPage() {
           </Link>
         </div>
 
-        {/* Danger Zone */}
-        <div className="bg-white border border-red-200 rounded-xl p-5">
-          <h2 className="font-serif text-lg font-semibold text-red-600 mb-3 flex items-center gap-2">
-            <Trash2 className="w-5 h-5" />
-            Danger Zone
-          </h2>
-          <p className="text-[#7A5C44] text-sm mb-3">Permanently delete your account and all data.</p>
-          <button
-            className="text-red-500 text-sm border border-red-200 px-4 py-2 rounded-lg hover:bg-red-50 transition-colors"
-            onClick={() => alert("Delete account — demo mode, no backend action")}
-          >
-            Delete My Account
-          </button>
-        </div>
+        <p className="text-xs text-[#7A5C44]">To request account deletion, contact the restaurant directly.</p>
 
         {/* Logout */}
         <button

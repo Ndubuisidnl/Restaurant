@@ -1,48 +1,80 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
-import { CheckCircle2, ChevronDown, Truck, Store } from "lucide-react";
+import { CheckCircle2, Truck, Store } from "lucide-react";
 import Link from "next/link";
 import Footer from "@/components/footer/Footer";
 import { checkoutSchema, type CheckoutSchema } from "@/lib/validations";
 import { useCartStore } from "@/lib/store/cartStore";
 import { formatCurrency } from "@/lib/data/demo";
-
-// SUPABASE: FUTURE BACKEND INTEGRATION - ORDER SUBMISSION
-// Replace the demo handleSubmit with a real Supabase insert to the orders table.
+import { createClient } from "@/lib/supabase/client";
 
 export default function CheckoutPage() {
-  const router = useRouter();
   const { items, getSubtotal, clearCart } = useCartStore();
   const [submitting, setSubmitting] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderNumber, setOrderNumber] = useState("");
+  const [submitError, setSubmitError] = useState("");
+  const [deliveryFee, setDeliveryFee] = useState<number | null>(null);
   const subtotal = getSubtotal();
 
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm<CheckoutSchema>({
     resolver: zodResolver(checkoutSchema),
     defaultValues: { orderType: "delivery", paymentMethod: "pay-on-delivery" },
   });
+  const orderType = useWatch({ control, name: "orderType" });
+  const total = subtotal + (orderType === "delivery" ? deliveryFee || 0 : 0);
 
-  const orderType = watch("orderType");
+  useEffect(() => {
+    let active = true;
+    createClient().from("restaurant_settings").select("delivery_fee").eq("id", true).maybeSingle()
+      .then(({ data, error }) => {
+        if (error) { console.error("Unable to load delivery fee", error); return; }
+        if (active) setDeliveryFee(data?.delivery_fee ?? null);
+      });
+    return () => { active = false; };
+  }, []);
 
   const onSubmit = async (data: CheckoutSchema) => {
     setSubmitting(true);
-    // SUPABASE: FUTURE BACKEND INTEGRATION - INSERT ORDER
-    // const { data: order } = await supabase.from('orders').insert({ ...data, items, subtotal, status: 'pending' })
-    console.log("Order (demo):", { ...data, items, subtotal });
-    await new Promise((r) => setTimeout(r, 1500));
-    clearCart();
-    setSubmitting(false);
-    setOrderPlaced(true);
+    setSubmitError("");
+    try {
+      const supabase = createClient();
+      const { data: orderResult, error } = await supabase.rpc("place_order", {
+        p_full_name: data.fullName,
+        p_email: data.email,
+        p_phone: data.phone,
+        p_order_type: data.orderType,
+        p_delivery_address: data.deliveryAddress?.address || null,
+        p_delivery_landmark: data.deliveryAddress?.landmark || null,
+        p_payment_method: data.paymentMethod,
+        p_general_note: data.generalNote || "",
+        p_items: items.map((item) => ({
+          menu_item_id: item.menuItem.id,
+          quantity: item.quantity,
+          special_instructions: item.specialInstructions || "",
+        })),
+      });
+      if (error) throw error;
+      const created = Array.isArray(orderResult) ? orderResult[0] : orderResult;
+      if (!created?.order_id) throw new Error("The order was submitted but no confirmation number was returned.");
+      setOrderNumber(created.order_number);
+      clearCart();
+      setOrderPlaced(true);
+    } catch (error) {
+      console.error("Order submission failed", error);
+      setSubmitError(error instanceof Error ? error.message : "We couldn't place your order. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (items.length === 0 && !orderPlaced) {
@@ -71,10 +103,7 @@ export default function CheckoutPage() {
               <CheckCircle2 className="w-10 h-10 text-emerald-500" />
             </div>
             <h2 className="font-serif text-3xl font-bold text-[#1A0A00] mb-3">Order Placed!</h2>
-            <p className="text-[#7A5C44] mb-2">Thank you for your order! We will confirm via WhatsApp shortly.</p>
-            {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mt-4">
-              ⚠️ Demo mode — no real order was placed. Backend coming soon.
-            </p> */}
+            <p className="text-[#7A5C44] mb-2">Your order <strong>{orderNumber}</strong> has been saved. We will confirm it via WhatsApp shortly.</p>
             <Link href="/" className="mt-6 inline-block px-6 py-2.5 bg-[#3B1A08] text-white rounded-full hover:bg-[#C8873F] transition-colors font-medium">
               Back to Home
             </Link>
@@ -91,14 +120,12 @@ export default function CheckoutPage() {
         <div className="max-w-5xl mx-auto">
           <h1 className="font-serif text-4xl font-bold text-white mb-2">Checkout</h1>
           <p className="text-white/60">Review your order and complete your details.</p>
-          {/* <p className="text-amber-400/70 text-xs mt-2 bg-amber-400/10 inline-block px-4 py-1.5 rounded-full">
-            ⚠️ Demo mode — orders are not saved. Backend coming soon.
-          </p> */}
         </div>
       </div>
 
       <div className="flex-1 max-w-5xl mx-auto px-4 py-10 w-full">
         <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {submitError && <p role="alert" className="lg:col-span-3 text-red-600 text-sm bg-red-50 border border-red-200 px-4 py-3 rounded-lg">{submitError}</p>}
           {/* Left: Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Contact Details */}
@@ -202,11 +229,11 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-[#7A5C44]">Delivery</span>
-                <span className="text-[#7A5C44] text-xs">{orderType === "pickup" ? "Free (pickup)" : "TBD"}</span>
+                <span className="text-[#7A5C44] text-xs">{orderType === "pickup" ? "Free (pickup)" : deliveryFee === null ? "To be confirmed" : deliveryFee === 0 ? "Free" : formatCurrency(deliveryFee)}</span>
               </div>
               <div className="flex justify-between font-bold text-base pt-1">
                 <span>Total</span>
-                <span className="text-[#C8873F]">{formatCurrency(subtotal)}</span>
+                <span className="text-[#C8873F]">{formatCurrency(total)}</span>
               </div>
             </div>
             <button
