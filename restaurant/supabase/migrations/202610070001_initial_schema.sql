@@ -65,9 +65,11 @@ create table if not exists public.menu_items (
   name text not null,
   description text not null default '',
   price integer not null check (price >= 0),
+  price_secondary integer check (price_secondary is null or price_secondary >= 0),
+  price_display text,
   category text not null check (category in (
-    'breakfast','burgers','sandwiches','main-dishes','pasta','rice',
-    'chicken','snacks','coffee','drinks','desserts'
+    'breakfast','burgers','sandwiches','starters','salads','main-dishes',
+    'sides','pasta','coffee','drinks','desserts'
   )),
   image text,
   image_label text not null default '',
@@ -79,6 +81,15 @@ create table if not exists public.menu_items (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.menu_items
+  add column if not exists price_secondary integer check (price_secondary is null or price_secondary >= 0),
+  add column if not exists price_display text;
+alter table public.menu_items drop constraint if exists menu_items_category_check;
+alter table public.menu_items add constraint menu_items_category_check check (category in (
+  'breakfast','burgers','sandwiches','starters','salads','main-dishes',
+  'sides','pasta','coffee','drinks','desserts'
+));
 
 create table if not exists public.restaurant_settings (
   id boolean primary key default true check (id = true),
@@ -296,6 +307,7 @@ declare
   v_item jsonb;
   v_menu_item public.menu_items%rowtype;
   v_quantity integer;
+  v_selected_price integer;
 begin
   if nullif(trim(p_full_name), '') is null or nullif(trim(p_email), '') is null or nullif(trim(p_phone), '') is null then
     raise exception 'Name, email, and phone are required';
@@ -312,11 +324,16 @@ begin
 
   for v_item in select value from jsonb_array_elements(p_items) loop
     v_quantity := (v_item ->> 'quantity')::integer;
+    v_selected_price := (v_item ->> 'selected_unit_price')::integer;
     if v_quantity < 1 or v_quantity > 20 then raise exception 'Invalid item quantity'; end if;
     select * into v_menu_item from public.menu_items
       where id = (v_item ->> 'menu_item_id')::uuid and is_active and available;
     if not found then raise exception 'A menu item is no longer available'; end if;
-    v_subtotal := v_subtotal + v_menu_item.price * v_quantity;
+    if v_selected_price is distinct from v_menu_item.price
+      and v_selected_price is distinct from v_menu_item.price_secondary then
+      raise exception 'A selected menu price is no longer valid';
+    end if;
+    v_subtotal := v_subtotal + v_selected_price * v_quantity;
   end loop;
 
   if p_order_type = 'delivery' then
@@ -337,11 +354,12 @@ begin
 
   for v_item in select value from jsonb_array_elements(p_items) loop
     v_quantity := (v_item ->> 'quantity')::integer;
+    v_selected_price := (v_item ->> 'selected_unit_price')::integer;
     select * into v_menu_item from public.menu_items
       where id = (v_item ->> 'menu_item_id')::uuid and is_active and available;
     insert into public.order_items (order_id, menu_item_id, item_name, unit_price, quantity, special_instructions)
     values (
-      v_order_id, v_menu_item.id, v_menu_item.name, v_menu_item.price, v_quantity,
+      v_order_id, v_menu_item.id, v_menu_item.name, v_selected_price, v_quantity,
       left(coalesce(v_item ->> 'special_instructions', ''), 500)
     );
   end loop;

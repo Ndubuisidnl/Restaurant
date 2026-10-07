@@ -13,11 +13,11 @@ export type MenuCategory =
   | "breakfast"
   | "burgers"
   | "sandwiches"
+  | "starters"
+  | "salads"
   | "main-dishes"
+  | "sides"
   | "pasta"
-  | "rice"
-  | "chicken"
-  | "snacks"
   | "coffee"
   | "drinks"
   | "desserts";
@@ -26,12 +26,25 @@ export interface MenuItem {
   id: string;
   name: string;
   description: string;
-  /** Price in Naira (NGN). Demo data only — replace with real prices. */
+  /**
+   * Base price in Naira (NGN).
+   * For two-price items, this is the lower price (used for cart calculations when no selection is made).
+   */
   price: number;
+  /**
+   * Optional second price for items printed as "₦A / ₦B" on the menu.
+   * When set, the cart will prompt the user to select either price before adding.
+   */
+  priceSecondary?: number;
+  /**
+   * Exact price string as printed on the menu (e.g., "₦700 / ₦1,000").
+   * Shown on all menu cards. When absent, formatCurrency(price) is used.
+   */
+  priceDisplay?: string;
   category: MenuCategory;
   /** Image URL path (e.g., /images/filename.png) */
   image?: string;
-  /** Used for {IMAGE: ...} placeholder labels when no image is provided */
+  /** Used for IMAGE: placeholder labels when no image is provided */
   imageLabel: string;
   available: boolean;
   featured?: boolean;

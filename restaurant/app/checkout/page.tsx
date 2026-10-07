@@ -59,6 +59,7 @@ export default function CheckoutPage() {
         p_general_note: data.generalNote || "",
         p_items: items.map((item) => ({
           menu_item_id: item.menuItem.id,
+          selected_unit_price: item.menuItem.price,
           quantity: item.quantity,
           special_instructions: item.specialInstructions || "",
         })),
