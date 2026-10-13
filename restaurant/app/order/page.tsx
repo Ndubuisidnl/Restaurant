@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ShoppingBag, Heart, Plus, ArrowRight } from "lucide-react";
@@ -82,9 +83,17 @@ export default function OrderPage() {
                     transition={{ delay: i * 0.06 }}
                     className="bg-white rounded-xl border border-[#E8D5BF] overflow-hidden hover:shadow-md hover:-translate-y-0.5 transition-all"
                   >
-                    {/* IMAGE: {item.imageLabel} */}
-                    <div className="relative aspect-[4/3] bg-gradient-to-br from-[#E8C99A] to-[#C8873F] flex items-center justify-center">
-                      <span className="text-3xl" aria-hidden="true">🍽️</span>
+                    <div className="relative aspect-[4/3] bg-gradient-to-br from-[#E8C99A] to-[#C8873F] flex items-center justify-center overflow-hidden">
+                      {item.image && (
+                        <Image
+                          src={item.image}
+                          alt={item.name}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                        />
+                      )}
+                      {!item.image && <span className="text-3xl" aria-hidden="true">🍽️</span>}
                       <button
                         onClick={() => toggleFavorite(item)}
                         className="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow"
