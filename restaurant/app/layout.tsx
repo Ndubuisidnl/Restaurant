@@ -6,6 +6,7 @@ import CartDrawer from "@/components/cart/CartDrawer";
 import Toast from "@/components/ui/Toast";
 import FloatingWhatsAppButton from "@/components/ui/FloatingWhatsAppButton";
 import ScrollToTop from "@/components/ui/ScrollToTop";
+import StoreHydration from "@/components/providers/StoreHydration";
 
 // ============================================================
 // FONTS — Google Fonts with safe local/system fallbacks
@@ -79,6 +80,7 @@ export default function RootLayout({
       className={`${inter.variable} ${playfair.variable} scroll-smooth`}
     >
       <body className="min-h-screen bg-[#FDF6EE] text-[#1A0A00] flex flex-col font-sans antialiased">
+        <StoreHydration />
         {/* Global Navbar */}
         <Navbar />
 
@@ -91,12 +93,6 @@ export default function RootLayout({
         <FloatingWhatsAppButton />
         <ScrollToTop />
 
-        {/* ==================================================
-            SUPABASE: FUTURE BACKEND INTEGRATION
-            In the backend phase, wrap this layout with:
-            - Supabase Auth session provider
-            - Real-time subscription providers
-            ================================================== */}
       </body>
     </html>
   );

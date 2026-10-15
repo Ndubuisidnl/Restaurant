@@ -8,17 +8,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Coffee, UserPlus } from "lucide-react";
 import { signupSchema, type SignupSchema } from "@/lib/validations";
-import { useAuthUIStore } from "@/lib/store/authUIStore";
-
-// SUPABASE: FUTURE BACKEND INTEGRATION - REAL SIGNUP
-// Replace demoLogin with: await supabase.auth.signUp({ email, password, options: { data: { full_name } } })
+import { createClient } from "@/lib/supabase/client";
 
 export default function SignupPage() {
   const router = useRouter();
-  const { demoLogin } = useAuthUIStore();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [confirmationSent, setConfirmationSent] = useState(false);
 
   const { register, handleSubmit, formState: { errors } } = useForm<SignupSchema>({
     resolver: zodResolver(signupSchema),
@@ -27,11 +25,25 @@ export default function SignupPage() {
 
   const onSubmit = async (data: SignupSchema) => {
     setSubmitting(true);
-    // SUPABASE: FUTURE BACKEND INTEGRATION - AUTH SIGN UP
-    await new Promise((r) => setTimeout(r, 900));
-    demoLogin(data.fullName, data.email);
-    setSubmitting(false);
-    router.push("/profile");
+    setError("");
+    try {
+      const supabase = createClient();
+      const { data: result, error: signupError } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: { full_name: data.fullName, phone: data.phone },
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/profile`,
+        },
+      });
+      if (signupError) throw signupError;
+      if (result.session) router.push("/profile");
+      else setConfirmationSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "We couldn't create your account. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -48,12 +60,17 @@ export default function SignupPage() {
         </Link>
 
         <div className="bg-white border border-[#E8D5BF] rounded-2xl p-8 shadow-sm">
+          {confirmationSent ? (
+            <div className="py-4 text-center">
+              <h1 className="font-serif text-2xl font-bold text-[#1A0A00] mb-2">Check your email</h1>
+              <p className="text-[#7A5C44] text-sm">We sent a confirmation link to your email address. Open it to activate your account, then you can log in.</p>
+              <Link href="/auth/login" className="inline-block mt-5 text-[#C8873F] font-medium hover:underline">Go to Login</Link>
+            </div>
+          ) : <>
           <h1 className="font-serif text-2xl font-bold text-[#1A0A00] mb-2">Create Account</h1>
           <p className="text-[#7A5C44] text-sm mb-5">Join Wood House Cafe for a personalised experience</p>
 
-          {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
-            ⚠️ Demo mode — account data is not saved. Backend coming soon.
-          </p> */}
+          {error && <p role="alert" className="text-red-600 text-sm mb-4 bg-red-50 border border-red-200 px-4 py-2 rounded-lg">{error}</p>}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
@@ -112,6 +129,7 @@ export default function SignupPage() {
             Already have an account?{" "}
             <Link href="/auth/login" className="text-[#C8873F] font-medium hover:underline">Login</Link>
           </p>
+          </>}
         </div>
       </motion.div>
     </div>

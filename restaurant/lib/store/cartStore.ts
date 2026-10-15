@@ -1,17 +1,12 @@
 "use client";
 
 // ============================================================
-// WOOD HOUSE CAFE — CART STORE (Zustand)
-// Frontend-only cart state management using Zustand.
-//
-// SUPABASE: FUTURE BACKEND INTEGRATION - CART & ORDERS
-// When the backend phase begins, cart state will be persisted
-// to Supabase and orders will be created via Supabase RPC/API.
+// Cart contents are kept locally until checkout submits a verified order to Supabase.
 // ============================================================
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { CartItem, MenuItem, DemoOrder, OrderType, PaymentMethod, CustomerDetails, DeliveryAddress } from "@/types";
+import type { CartItem, MenuItem } from "@/types";
 
 interface CartStore {
   items: CartItem[];
@@ -33,9 +28,6 @@ interface CartStore {
   getItemCount: () => number;
   getSubtotal: () => number;
 
-  // Demo order state
-  lastOrder: DemoOrder | null;
-  setLastOrder: (order: DemoOrder) => void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -43,7 +35,6 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       isOpen: false,
-      lastOrder: null,
 
       addItem: (menuItem, quantity = 1, specialInstructions = "") => {
         set((state) => {
@@ -118,14 +109,13 @@ export const useCartStore = create<CartStore>()(
           0
         ),
 
-      setLastOrder: (order) => set({ lastOrder: order }),
     }),
     {
       name: "woodhouse-cart",
-      // Only persist items and lastOrder, not UI state
+      skipHydration: true,
+      // Persist items, but not drawer visibility.
       partialize: (state) => ({
         items: state.items,
-        lastOrder: state.lastOrder,
       }),
     }
   )

@@ -8,10 +8,7 @@ import { CalendarCheck, Clock, Users, ChevronDown, CheckCircle2 } from "lucide-r
 import Footer from "@/components/footer/Footer";
 import { reservationSchema, type ReservationSchema } from "@/lib/validations";
 import { RESERVATION_TIMES, formatTime, BUSINESS_INFO } from "@/lib/data/demo";
-import type { Metadata } from "next";
-
-// SUPABASE: FUTURE BACKEND INTEGRATION - RESERVATION SUBMISSION
-// Replace handleSubmit logic with a real Supabase insert to the reservations table.
+import { createClient } from "@/lib/supabase/client";
 
 const OCCASIONS = [
   { value: "none", label: "No special occasion" },
@@ -26,11 +23,11 @@ const OCCASIONS = [
 export default function ReservationsPage() {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const {
     register,
     handleSubmit,
-    watch,
     formState: { errors },
   } = useForm<ReservationSchema>({
     resolver: zodResolver(reservationSchema),
@@ -39,12 +36,29 @@ export default function ReservationsPage() {
 
   const onSubmit = async (data: ReservationSchema) => {
     setSubmitting(true);
-    // SUPABASE: FUTURE BACKEND INTEGRATION - INSERT RESERVATION
-    // await supabase.from('reservations').insert({ ...data, status: 'pending' })
-    console.log("Reservation (demo):", data);
-    await new Promise((r) => setTimeout(r, 1200));
-    setSubmitting(false);
-    setSubmitted(true);
+    setSubmitError("");
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from("reservations").insert({
+        user_id: user?.id ?? null,
+        full_name: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        reservation_date: data.date,
+        reservation_time: data.time,
+        guest_count: data.guestCount,
+        occasion: data.occasion,
+        special_requests: data.specialRequests || "",
+      });
+      if (error) throw error;
+      setSubmitted(true);
+    } catch (error) {
+      console.error("Reservation request failed", error);
+      setSubmitError(error instanceof Error ? error.message : "We couldn't submit your reservation. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const todayStr = new Date().toISOString().split("T")[0];
@@ -71,9 +85,6 @@ export default function ReservationsPage() {
                 WhatsApp
               </a>.
             </p>
-            <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg">
-              ⚠️ Demo mode — no actual reservation was made. Backend coming soon.
-            </p>
             <button
               onClick={() => setSubmitted(false)}
               className="mt-6 px-6 py-2.5 bg-[#3B1A08] text-white rounded-full text-sm font-medium hover:bg-[#C8873F] transition-colors"
@@ -98,9 +109,6 @@ export default function ReservationsPage() {
         <p className="text-white/60 max-w-xl mx-auto">
           Plan your visit ahead. Fill in the form below and our team will confirm your reservation.
         </p>
-        {/* <p className="text-amber-400/70 text-xs mt-3 bg-amber-400/10 inline-block px-4 py-1.5 rounded-full">
-          ⚠️ Demo mode — form submissions are not saved. Backend coming soon.
-        </p> */}
       </div>
 
       {/* Info Cards */}
@@ -122,6 +130,7 @@ export default function ReservationsPage() {
         {/* Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="bg-white border border-[#E8D5BF] rounded-2xl p-6 sm:p-8 shadow-sm space-y-5">
           <h2 className="font-serif text-xl font-semibold text-[#1A0A00]">Reservation Details</h2>
+          {submitError && <p role="alert" className="text-red-600 text-sm bg-red-50 border border-red-200 px-4 py-2 rounded-lg">{submitError}</p>}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>

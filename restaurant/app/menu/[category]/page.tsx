@@ -1,18 +1,19 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Plus, Check } from "lucide-react";
 import Link from "next/link";
 import Footer from "@/components/footer/Footer";
-import { MENU_CATEGORIES, getMenuItemsByCategory } from "@/lib/data/menu";
+import { MENU_CATEGORIES } from "@/lib/data/menu";
+import { fetchMenuItems } from "@/lib/data/menu-api";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useFavoritesStore } from "@/lib/store/favoritesStore";
 import { useToastStore } from "@/lib/store/toastStore";
 import { formatCurrency } from "@/lib/data/demo";
-import type { MenuCategory, MenuItem } from "@/types";
+import type { MenuItem } from "@/types";
 
 interface Props {
   params: Promise<{ category: string }>;
@@ -24,7 +25,15 @@ export default function MenuCategoryPage({ params }: Props) {
   const categoryData = MENU_CATEGORIES.find((c) => c.id === category);
   if (!categoryData) notFound();
 
-  const items = getMenuItemsByCategory(category as MenuCategory);
+  const [items, setItems] = useState<MenuItem[]>([]);
+  const [loadError, setLoadError] = useState(false);
+  useEffect(() => {
+    let active = true;
+    fetchMenuItems()
+      .then((allItems) => { if (active) setItems(allItems.filter((item) => item.category === categoryData.id)); })
+      .catch((error) => { console.error("Unable to load menu category", error); if (active) setLoadError(true); });
+    return () => { active = false; };
+  }, [categoryData.id]);
   const { addItem, openCart } = useCartStore();
   const { toggleFavorite, isFavorite } = useFavoritesStore();
   const { success } = useToastStore();
@@ -67,7 +76,7 @@ export default function MenuCategoryPage({ params }: Props) {
       </div>
 
       <div className="flex-1 max-w-7xl mx-auto px-4 py-10 w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        {items.length === 0 ? <p className="text-center py-16 text-[#7A5C44]">{loadError ? "Menu is temporarily unavailable." : "No items in this category yet."}</p> : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {items.map((item, i) => (
             <motion.article
               key={item.id}
@@ -162,7 +171,7 @@ export default function MenuCategoryPage({ params }: Props) {
               </div>
             </motion.article>
           ))}
-        </div>
+        </div>}
       </div>
 
       <Footer />

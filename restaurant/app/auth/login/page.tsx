@@ -8,14 +8,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { Eye, EyeOff, Coffee, LogIn } from "lucide-react";
 import { loginSchema, type LoginSchema } from "@/lib/validations";
-import { useAuthUIStore } from "@/lib/store/authUIStore";
-
-// SUPABASE: FUTURE BACKEND INTEGRATION - REAL AUTHENTICATION
-// Replace demoLogin with: await supabase.auth.signInWithPassword({ email, password })
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { demoLogin } = useAuthUIStore();
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -27,11 +23,20 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginSchema) => {
     setSubmitting(true);
     setError("");
-    // SUPABASE: FUTURE BACKEND INTEGRATION - AUTH SIGN IN
-    await new Promise((r) => setTimeout(r, 800));
-    demoLogin("Alex Johnson", data.email);
-    setSubmitting(false);
-    router.push("/profile");
+    try {
+      const supabase = createClient();
+      const { error: loginError } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+      if (loginError) throw loginError;
+      router.push("/profile");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "We couldn't sign you in. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -55,10 +60,6 @@ export default function LoginPage() {
         <div className="bg-white border border-[#E8D5BF] rounded-2xl p-8 shadow-sm">
           <h1 className="font-serif text-2xl font-bold text-[#1A0A00] mb-2">Login</h1>
           <p className="text-[#7A5C44] text-sm mb-6">Sign in to your Wood House Cafe account</p>
-
-          {/* <p className="text-amber-600 text-xs bg-amber-50 border border-amber-200 px-4 py-2 rounded-lg mb-5">
-            ⚠️ Demo mode — any email/password will log you in. Backend coming soon.
-          </p> */}
 
           {error && <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-200 px-4 py-2 rounded-lg">{error}</p>}
 

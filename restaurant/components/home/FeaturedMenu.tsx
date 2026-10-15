@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Plus, ShoppingBag, ArrowRight, Check } from "lucide-react";
-import { getFeaturedMenuItems } from "@/lib/data/menu";
+import { fetchMenuItems } from "@/lib/data/menu-api";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useFavoritesStore } from "@/lib/store/favoritesStore";
 import { useToastStore } from "@/lib/store/toastStore";
@@ -17,12 +17,20 @@ import type { MenuItem } from "@/types";
 // ============================================================
 
 export default function FeaturedMenu() {
-  const featuredItems = getFeaturedMenuItems().slice(0, 6);
+  const [featuredItems, setFeaturedItems] = useState<MenuItem[]>([]);
   const { addItem, openCart } = useCartStore();
   const { toggleFavorite, isFavorite } = useFavoritesStore();
   const { success } = useToastStore();
   // Track which two-price item is showing the size picker: itemId -> selected price
   const [sizePicker, setSizePicker] = useState<Record<string, number | null>>({});
+
+  useEffect(() => {
+    let active = true;
+    fetchMenuItems()
+      .then((items) => { if (active) setFeaturedItems(items.filter((item) => item.featured).slice(0, 6)); })
+      .catch((error) => console.error("Unable to load featured menu items", error));
+    return () => { active = false; };
+  }, []);
 
   const handleAddToCart = (item: MenuItem) => {
     if (item.priceSecondary) {
