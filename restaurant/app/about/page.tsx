@@ -1,4 +1,5 @@
 import Footer from "@/components/footer/Footer";
+import Image from "next/image";
 import { MapPin, Clock, Phone, MessageCircle, Wifi, Trees, BookOpen, CalendarCheck, Coffee, Users } from "lucide-react";
 import { BUSINESS_INFO } from "@/lib/data/demo";
 import type { Metadata } from "next";
@@ -33,13 +34,16 @@ export default function AboutPage() {
 
       {/* Story Section */}
       <section className="py-16 px-4 max-w-4xl mx-auto w-full">
-        {/* IMAGE: WOOD HOUSE CAFE EXTERIOR OR INTERIOR WARM DAYLIGHT */}
-        <div className="aspect-video bg-gradient-to-br from-[#E8C99A] to-[#C8873F] rounded-2xl mb-10 flex items-center justify-center relative overflow-hidden">
-          <span className="text-white/30 text-sm absolute top-4 left-4 bg-black/30 px-3 py-1 rounded-full">IMAGE: WOOD HOUSE CAFE EXTERIOR OR INTERIOR</span>
-          <div className="text-center text-white">
-            <Coffee className="w-12 h-12 mx-auto mb-3 opacity-60" />
-            <p className="font-serif text-xl opacity-60">Wood House Cafe</p>
-          </div>
+        {/* Wood House Cafe Exterior Photo */}
+        <div className="w-full rounded-2xl mb-10 overflow-hidden shadow-lg">
+          <Image
+            src="/images/Wood 2.png"
+            alt="Wood House Cafe exterior"
+            width={1200}
+            height={800}
+            className="w-full h-auto object-cover"
+            priority
+          />
         </div>
 
         <div className="prose prose-lg max-w-none text-[#6B4226] leading-relaxed space-y-5">

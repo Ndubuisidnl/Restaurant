@@ -195,7 +195,6 @@ export default function Navbar() {
                       >
                         <div className="px-4 py-3 border-b border-white/10">
                           <p className="text-white text-sm font-medium">{demoUserName}</p>
-                          <p className="text-white/50 text-xs mt-0.5">Demo Account</p>
                         </div>
                         {[
                           { href: "/profile", icon: User, label: "My Profile" },
