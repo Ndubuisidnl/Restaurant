@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ShoppingBag, Plus, Minus, Trash2, ArrowRight } from "lucide-react";
+import { ShoppingBag, Plus, Minus, Trash2, ArrowRight, UtensilsCrossed } from "lucide-react";
 import Footer from "@/components/footer/Footer";
 import { useCartStore } from "@/lib/store/cartStore";
 import { formatCurrency } from "@/lib/data/demo";
@@ -46,7 +46,7 @@ export default function CartPage() {
                 <div key={item.menuItem.id} className="bg-white border border-[#E8D5BF] rounded-xl p-4 flex gap-4">
                   {/* IMAGE: {item.menuItem.imageLabel} */}
                   <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-[#E8C99A] to-[#C8873F] flex items-center justify-center flex-shrink-0">
-                    <span className="text-2xl">🍽️</span>
+                    <UtensilsCrossed className="h-6 w-6 text-[#3B1A08]/60" aria-hidden="true" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">

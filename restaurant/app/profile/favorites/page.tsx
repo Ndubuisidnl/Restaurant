@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, Plus, ArrowLeft } from "lucide-react";
+import { Heart, Plus, ArrowLeft, UtensilsCrossed } from "lucide-react";
 import Footer from "@/components/footer/Footer";
 import { useAuthUIStore } from "@/lib/store/authUIStore";
 import { useFavoritesStore } from "@/lib/store/favoritesStore";
@@ -73,7 +73,7 @@ export default function FavoritesPage() {
               >
                 {/* IMAGE: {item.imageLabel} */}
                 <div className="relative aspect-[4/3] bg-gradient-to-br from-[#E8C99A] to-[#C8873F] flex items-center justify-center">
-                  <span className="text-3xl">🍽️</span>
+                  <UtensilsCrossed className="h-8 w-8 text-[#3B1A08]/60" aria-hidden="true" />
                   <button
                     onClick={() => toggleFavorite(item)}
                     className="absolute top-3 right-3 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow"

@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Plus, ShoppingBag, ArrowRight, Check } from "lucide-react";
+import { Heart, Plus, ShoppingBag, ArrowRight, Check, UtensilsCrossed, TriangleAlert } from "lucide-react";
 import { fetchMenuItems } from "@/lib/data/menu-api";
 import { useCartStore } from "@/lib/store/cartStore";
 import { useFavoritesStore } from "@/lib/store/favoritesStore";
@@ -80,7 +80,7 @@ export default function FeaturedMenu() {
             A selection from our menu. explore more on the full menu page.
           </p>
           {/* <p className="text-[#7A5C44] text-xs mt-2 bg-[#FDF6EE] inline-block px-3 py-1 rounded-full">
-            ⚠️ Demo data — prices and items will be updated with official information
+            <TriangleAlert className="mr-1 inline h-3 w-3" aria-hidden="true" /> Demo data — prices and items will be updated with official information
           </p> */}
         </motion.div>
 
@@ -106,7 +106,7 @@ export default function FeaturedMenu() {
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                 ) : (
-                  <span className="text-4xl" aria-hidden="true">🍽️</span>
+                  <UtensilsCrossed className="h-10 w-10 text-[#3B1A08]/60" aria-hidden="true" />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 

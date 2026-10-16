@@ -15,6 +15,13 @@ interface MenuRow {
   preparation_time: number | null;
 }
 
+// Use the cafe's own available dish photos only for the items they clearly show.
+const WOODHOUSE_MENU_PHOTOS: Record<string, string> = {
+  "English Breakfast": "/images/WOOD HOUSE CAFE ENGLISH BREAKFAST PLATE.png",
+  "Complete English Breakfast": "/images/WOOD HOUSE CAFE ENGLISH BREAKFAST PLATE.png",
+  "House Burger": "/images/WOOD HOUSE CAFE BURGER.png",
+};
+
 export function mapMenuRow(row: MenuRow): MenuItem {
   return {
     id: row.id,
@@ -22,7 +29,7 @@ export function mapMenuRow(row: MenuRow): MenuItem {
     description: row.description,
     price: row.price,
     category: row.category,
-    image: row.image || undefined,
+    image: row.image || WOODHOUSE_MENU_PHOTOS[row.name] || undefined,
     imageLabel: row.image_label,
     available: row.available,
     featured: row.featured,

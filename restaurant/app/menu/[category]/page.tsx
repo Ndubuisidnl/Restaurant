@@ -4,7 +4,7 @@ import { use, useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Heart, Plus, Check } from "lucide-react";
+import { Heart, Plus, Check, UtensilsCrossed } from "lucide-react";
 import Link from "next/link";
 import Footer from "@/components/footer/Footer";
 import { MENU_CATEGORIES } from "@/lib/data/menu";
@@ -24,6 +24,7 @@ export default function MenuCategoryPage({ params }: Props) {
 
   const categoryData = MENU_CATEGORIES.find((c) => c.id === category);
   if (!categoryData) notFound();
+  const CategoryIcon = categoryData.icon;
 
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loadError, setLoadError] = useState(false);
@@ -69,7 +70,7 @@ export default function MenuCategoryPage({ params }: Props) {
             ← Back to Menu
           </Link>
           <h1 className="font-serif text-4xl sm:text-5xl font-bold text-white mt-2">
-            {categoryData.emoji} {categoryData.label}
+            <span className="inline-flex items-center gap-3"><CategoryIcon className="h-8 w-8" aria-hidden="true" />{categoryData.label}</span>
           </h1>
           <p className="text-white/50 mt-2">{items.length} items</p>
         </div>
@@ -96,7 +97,7 @@ export default function MenuCategoryPage({ params }: Props) {
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   />
                 ) : (
-                  <span className="text-4xl" aria-hidden="true">🍽️</span>
+                  <UtensilsCrossed className="h-10 w-10 text-[#3B1A08]/60" aria-hidden="true" />
                 )}
                 <button
                   onClick={() => toggleFavorite(item)}

@@ -4,20 +4,20 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
-import { CalendarCheck, Clock, Users, ChevronDown, CheckCircle2 } from "lucide-react";
+import { CalendarCheck, CalendarDays, Clock, Users, ChevronDown, CheckCircle2, CakeSlice, Heart, BriefcaseBusiness, UsersRound, Sparkles } from "lucide-react";
 import Footer from "@/components/footer/Footer";
 import { reservationSchema, type ReservationSchema } from "@/lib/validations";
 import { RESERVATION_TIMES, formatTime, BUSINESS_INFO } from "@/lib/data/demo";
 import { createClient } from "@/lib/supabase/client";
 
 const OCCASIONS = [
-  { value: "none", label: "No special occasion" },
-  { value: "birthday", label: "🎂 Birthday" },
-  { value: "anniversary", label: "💑 Anniversary" },
-  { value: "date", label: "❤️ Date Night" },
-  { value: "business-meeting", label: "💼 Business Meeting" },
-  { value: "family-gathering", label: "👨‍👩‍👧‍👦 Family Gathering" },
-  { value: "other", label: "✨ Other" },
+  { value: "none", label: "No special occasion", icon: CalendarDays },
+  { value: "birthday", label: "Birthday", icon: CakeSlice },
+  { value: "anniversary", label: "Anniversary", icon: Heart },
+  { value: "date", label: "Date Night", icon: Heart },
+  { value: "business-meeting", label: "Business Meeting", icon: BriefcaseBusiness },
+  { value: "family-gathering", label: "Family Gathering", icon: UsersRound },
+  { value: "other", label: "Other", icon: Sparkles },
 ];
 
 export default function ReservationsPage() {
@@ -28,11 +28,13 @@ export default function ReservationsPage() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<ReservationSchema>({
     resolver: zodResolver(reservationSchema),
     defaultValues: { guestCount: 2, occasion: "none" },
   });
+  const SelectedOccasionIcon = OCCASIONS.find((occasion) => occasion.value === watch("occasion"))?.icon ?? CalendarDays;
 
   const onSubmit = async (data: ReservationSchema) => {
     setSubmitting(true);
@@ -176,7 +178,8 @@ export default function ReservationsPage() {
           <div>
             <label htmlFor="occasion" className="block text-sm font-medium text-[#3B1A08] mb-1">Occasion</label>
             <div className="relative">
-              <select id="occasion" {...register("occasion")} className="w-full px-4 py-2.5 border border-[#E8D5BF] rounded-lg text-sm focus:outline-none focus:border-[#C8873F] transition-colors appearance-none bg-white">
+              <SelectedOccasionIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#C8873F] pointer-events-none" aria-hidden="true" />
+              <select id="occasion" {...register("occasion")} className="w-full pl-10 pr-10 py-2.5 border border-[#E8D5BF] rounded-lg text-sm focus:outline-none focus:border-[#C8873F] transition-colors appearance-none bg-white">
                 {OCCASIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
               <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#7A5C44] pointer-events-none" />

@@ -14,23 +14,37 @@
 // ============================================================
 
 import type { MenuItem, MenuCategory } from "@/types";
+import {
+  Beef,
+  CakeSlice,
+  Coffee,
+  CookingPot,
+  CupSoda,
+  EggFried,
+  Salad,
+  Sandwich,
+  Soup,
+  UtensilsCrossed,
+  Wheat,
+  type LucideIcon,
+} from "lucide-react";
 
 export const MENU_CATEGORIES: {
   id: MenuCategory;
   label: string;
-  emoji: string;
+  icon: LucideIcon;
 }[] = [
-  { id: "breakfast",   label: "Breakfast",   emoji: "🍳" },
-  { id: "burgers",     label: "Burgers",      emoji: "🍔" },
-  { id: "sandwiches",  label: "Sandwiches",   emoji: "🥪" },
-  { id: "starters",    label: "Starters",     emoji: "🍢" },
-  { id: "salads",      label: "Salads",       emoji: "🥗" },
-  { id: "main-dishes", label: "Main Dishes",  emoji: "🍽️" },
-  { id: "sides",       label: "Sides",        emoji: "🍟" },
-  { id: "pasta",       label: "Pasta",        emoji: "🍝" },
-  { id: "coffee",      label: "Coffee",       emoji: "☕" },
-  { id: "drinks",      label: "Drinks",       emoji: "🥤" },
-  { id: "desserts",    label: "Desserts",     emoji: "🧇" },
+  { id: "breakfast",   label: "Breakfast",   icon: EggFried },
+  { id: "burgers",     label: "Burgers",      icon: Beef },
+  { id: "sandwiches",  label: "Sandwiches",   icon: Sandwich },
+  { id: "starters",    label: "Starters",     icon: Soup },
+  { id: "salads",      label: "Salads",       icon: Salad },
+  { id: "main-dishes", label: "Main Dishes",  icon: UtensilsCrossed },
+  { id: "sides",       label: "Sides",        icon: CookingPot },
+  { id: "pasta",       label: "Pasta",        icon: Wheat },
+  { id: "coffee",      label: "Coffee",       icon: Coffee },
+  { id: "drinks",      label: "Drinks",       icon: CupSoda },
+  { id: "desserts",    label: "Desserts",     icon: CakeSlice },
 ];
 
 export const DEMO_MENU_ITEMS: MenuItem[] = [

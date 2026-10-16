@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ShoppingBag, Heart, Plus, ArrowRight } from "lucide-react";
+import { ShoppingBag, Heart, Plus, ArrowRight, UtensilsCrossed } from "lucide-react";
 import Footer from "@/components/footer/Footer";
 import { MENU_CATEGORIES } from "@/lib/data/menu";
 import { fetchMenuItems } from "@/lib/data/menu-api";
@@ -58,13 +58,14 @@ export default function OrderPage() {
       {/* Categories */}
       <div className="max-w-7xl mx-auto px-4 py-10 w-full">
         {MENU_CATEGORIES.map((category) => {
+          const CategoryIcon = category.icon;
           const items = menuItems.filter((i) => i.category === category.id);
           if (items.length === 0) return null;
           return (
             <section key={category.id} className="mb-14" aria-labelledby={`cat-${category.id}`}>
               <div className="flex items-center justify-between mb-5">
                 <h2 id={`cat-${category.id}`} className="font-serif text-2xl font-bold text-[#1A0A00]">
-                  {category.emoji} {category.label}
+                  <span className="inline-flex items-center gap-2"><CategoryIcon className="h-5 w-5" aria-hidden="true" />{category.label}</span>
                 </h2>
                 <Link
                   href={`/menu/${category.id}`}
@@ -93,7 +94,7 @@ export default function OrderPage() {
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                         />
                       )}
-                      {!item.image && <span className="text-3xl" aria-hidden="true">🍽️</span>}
+                      {!item.image && <UtensilsCrossed className="h-8 w-8 text-[#3B1A08]/60" aria-hidden="true" />}
                       <button
                         onClick={() => toggleFavorite(item)}
                         className="absolute top-2 right-2 w-7 h-7 bg-white/90 rounded-full flex items-center justify-center shadow"

@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, useMemo, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Heart, Plus, X, SlidersHorizontal, Check, LoaderCircle } from "lucide-react";
+import { Search, Heart, Plus, X, SlidersHorizontal, Check, LoaderCircle, UtensilsCrossed } from "lucide-react";
 import Footer from "@/components/footer/Footer";
 import { MENU_CATEGORIES } from "@/lib/data/menu";
 import { fetchMenuItems } from "@/lib/data/menu-api";
@@ -125,16 +125,19 @@ export default function MenuPage() {
             >
               All
             </button>
-            {MENU_CATEGORIES.map((cat) => (
+            {MENU_CATEGORIES.map((cat) => {
+              const CategoryIcon = cat.icon;
+              return (
               <button
                 key={cat.id}
                 onClick={() => { setActiveCategory(cat.id); setSearchQuery(""); }}
                 className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${activeCategory === cat.id && !searchQuery ? "bg-[#3B1A08] text-white" : "text-[#7A5C44] hover:text-[#3B1A08]"}`}
               >
-                <span>{cat.emoji}</span>
+                <CategoryIcon className="h-4 w-4" aria-hidden="true" />
                 {cat.label}
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
@@ -195,7 +198,7 @@ export default function MenuPage() {
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       />
                     ) : (
-                      <span className="text-4xl" aria-hidden="true">🍽️</span>
+                      <UtensilsCrossed className="h-10 w-10 text-[#3B1A08]/60" aria-hidden="true" />
                     )}
                     <button
                       onClick={() => toggleFavorite(item)}

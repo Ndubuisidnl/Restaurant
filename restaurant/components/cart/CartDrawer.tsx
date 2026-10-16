@@ -10,6 +10,7 @@ import {
   Minus,
   Trash2,
   ArrowRight,
+  UtensilsCrossed,
 } from "lucide-react";
 import { useCartStore } from "@/lib/store/cartStore";
 import { formatCurrency } from "@/lib/data/demo";
@@ -128,7 +129,7 @@ export default function CartDrawer() {
                             className="w-16 h-16 rounded-lg bg-gradient-to-br from-[#E8C99A] to-[#C8873F] flex-shrink-0 flex items-center justify-center text-xl"
                             aria-hidden="true"
                           >
-                            🍽️
+                            <UtensilsCrossed className="h-5 w-5 text-[#3B1A08]/60" aria-hidden="true" />
                           </div>
 
                           {/* Item Details */}
